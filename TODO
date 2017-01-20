@@ -1,0 +1,6 @@
+Organize project
+-Create test directory, put tests there
+-put extension for {-# LANGUAGE GeneralizedNewtypeDeriving #-} in Cabal file
+-add comments
+
+https://ericlippert.com/2016/02/17/attic/
