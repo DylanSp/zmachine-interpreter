@@ -1,9 +1,39 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module ZString
-(
+( ZStringAddress (..)
+, AbbreviationNumber (..)
+, readZString
+, displayBytes
+, abbreviationZString
 ) where
 
+import qualified Data.Char as Char
 import qualified Story as S
 import Utilities
+    
+data StringState = Alphabet Int
+                 | Abbrev AbbreviationNumber
+                 | Leading
+                 | Trailing Int
+
+abbrev0 :: StringState
+abbrev0 = Abbrev (AbbreviationNumber 0)
+
+abbrev32:: StringState
+abbrev32 = Abbrev (AbbreviationNumber 32)
+
+abbrev64 :: StringState
+abbrev64 = Abbrev (AbbreviationNumber 64)
+
+alphabet0 :: StringState
+alphabet0 = Alphabet 0
+
+alphabet1 :: StringState
+alphabet1 = Alphabet 1
+
+alphabet2 :: StringState
+alphabet2 = Alphabet 2
     
 newtype AbbreviationNumber = AbbreviationNumber Int
 
@@ -12,6 +42,13 @@ newtype AbbrevTableBase = AbbrevTableBase ZWord
 newtype WordZStringAddress = WordZStringAddress ZWord
 
 newtype ZStringAddress = ZStringAddress ZWord
+
+newtype ZChar = ZChar Int deriving (Eq, Ord, Num, Enum, Real, Integral, Show)
+
+alphabetTables :: [String]
+alphabetTables = [" ?????abcdefghijklmnopqrstuvwxyz",
+                  " ?????ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                  " ??????\n0123456789.,!?_#\'\"/\\-:()"]
 
 abbrevTableBaseOffset :: WordAddress
 abbrevTableBaseOffset = WordAddress 24
@@ -36,3 +73,49 @@ abbreviationZString story (AbbreviationNumber n)
         where base = firstAbbrevAddr (abbreviationsTableBase story)
               abbrevationAddr = incWordAddrBy base n
               wordAddr = WordZStringAddress (S.readWord story abbrevationAddr)
+    
+readZString :: S.Story -> ZStringAddress -> String
+readZString story (ZStringAddress address) = aux "" alphabet0 (WordAddress (fromIntegral address))
+    where processZChar :: ZChar -> StringState -> (String, StringState)
+          processZChar (ZChar 1) (Alphabet _) = ("", abbrev0)
+          processZChar (ZChar 2) (Alphabet _) = ("", abbrev32)
+          processZChar (ZChar 3) (Alphabet _) = ("", abbrev64)
+          processZChar (ZChar 4) (Alphabet _) = ("", alphabet1)
+          processZChar (ZChar 5) (Alphabet _) = ("", alphabet2)
+          processZChar (ZChar 6) (Alphabet 2) = ("", Leading)
+          processZChar (ZChar char) (Alphabet a) = (show $ alphabetTables !! a !! char, alphabet0)
+          processZChar (ZChar char) (Abbrev (AbbreviationNumber a)) = (str, alphabet0)
+            where abbrv = AbbreviationNumber (a + char)
+                  addr = abbreviationZString story abbrv
+                  str = readZString story addr
+          processZChar (ZChar char) Leading = ("", Trailing char)
+          processZChar (ZChar char) (Trailing high) = (s, alphabet0)
+            where s = show $ Char.chr (high * 32 + char)
+          aux :: String -> StringState -> WordAddress -> String
+          aux acc state1 currentAddr
+            | isEnd     = newAcc
+            | otherwise = aux newAcc nextState (incWordAddr currentAddr)
+            where word = S.readWord story currentAddr
+                  isEnd = fetchBit bit15 word
+                  zCharBitSize = size5
+                  zChar1 = ZChar $ fromIntegral $ fetchBits bit14 zCharBitSize word
+                  zChar2 = ZChar $ fromIntegral $ fetchBits bit9 zCharBitSize word
+                  zChar3 = ZChar $ fromIntegral $ fetchBits bit4 zCharBitSize word
+                  (text1, state2) = processZChar zChar1 state1
+                  (text2, state3) = processZChar zChar2 state2
+                  (text3, nextState) = processZChar zChar3 state3
+                  newAcc = acc ++ text1 ++ text2 ++ text3
+                  
+--for debugging
+displayBytes :: S.Story -> ZStringAddress -> String
+displayBytes story (ZStringAddress address) = aux "" (WordAddress (fromIntegral address))
+    where aux :: String -> WordAddress -> String
+          aux acc currentAddr 
+            | isEnd     = newAcc
+            | otherwise = aux newAcc (incWordAddr currentAddr)
+            where word = S.readWord story currentAddr
+                  isEnd = fetchBit bit15 word
+                  zChar1 = ZChar (fromIntegral $ fetchBits bit14 size5 word)
+                  zChar2 = ZChar (fromIntegral $ fetchBits bit9 size5 word)
+                  zChar3 = ZChar (fromIntegral $ fetchBits bit4 size5 word)
+                  newAcc = acc ++ " " ++ show zChar1 ++ " " ++ show zChar2 ++ " " ++ show zChar3

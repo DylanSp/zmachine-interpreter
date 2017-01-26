@@ -5,6 +5,7 @@ module Story
 , writeByte
 , readWord
 , writeWord
+, debugStory
 ) where
 
 import Data.Bits
@@ -23,11 +24,16 @@ readByte story address
     | otherwise                     = dereferenceString (staticMemory story) staticAddress 
     where dynamicSize = IMB.size (dynamicMemory story)
           staticAddress = decByteAddrBy address dynamicSize
-    
+
+--separate high', low' are necessary, otherwise 256 * high is done in Word8 arithmetic, where it overflows
 readWord :: Story -> WordAddress -> ZWord
-readWord story address = fromIntegral $ 256 * high + low
+readWord story address = fromIntegral $ 256 * high' + low'
     where high = readByte story (addressOfHighByte address)
+          high' :: Word16
+          high' = fromIntegral high
           low  = readByte story (addressOfLowByte address)
+          low' :: Word16
+          low' = fromIntegral low
           
 writeByte :: Story -> ByteAddress -> Word8 -> Story
 writeByte story address value = Story { dynamicMemory = dynamicMemory',
@@ -68,3 +74,12 @@ loadStory :: String -> IO Story
 loadStory filename = do
     file <- fileToWordList filename
     return $ createStory filename file
+    
+debugStory :: Story -> IO ()
+debugStory story = do
+    let dynamicLen = IMB.size $ dynamicMemory story
+    let staticLen = length $ staticMemory story
+    let totalLen = dynamicLen + staticLen
+    putStrLn $ "Dynamic length: " ++ show dynamicLen
+    putStrLn $ "Static length: " ++ show staticLen
+    putStrLn $ "Total length: " ++ show totalLen

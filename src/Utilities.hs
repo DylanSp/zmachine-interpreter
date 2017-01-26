@@ -13,11 +13,11 @@ newtype BitNumber = BitNumber Int
 
 newtype BitSize = BitSize Int
 
-newtype ByteAddress = ByteAddress Int
+newtype ByteAddress = ByteAddress Int deriving (Show)
 
 newtype WordAddress = WordAddress Int
 
-newtype ZWord = ZWord Word16 deriving (Eq, Ord, Num, Enum, Bits, Real, Integral)
+newtype ZWord = ZWord Word16 deriving (Eq, Ord, Num, Enum, Bits, Real, Integral, Show)
 
 --ZWord size in bytes
 zWordSize :: Int
@@ -48,6 +48,9 @@ size5 = BitSize 5
 size6 = BitSize 6
 size7 = BitSize 7
 
+fetchBit :: (Bits a) => BitNumber -> a -> Bool
+fetchBit (BitNumber n) word = testBit word n
+
 fetchBits :: (Bits a) => BitNumber -> BitSize -> a -> a
 fetchBits (BitNumber high) (BitSize len) word = (word `shiftR` (high - len + 1)) .&. mask
     where mask = complement ((complement zeroBits) `shiftL` len)
@@ -77,7 +80,7 @@ incWordAddr address = incWordAddrBy address 1
 
 dereferenceString :: [Word8] -> ByteAddress -> Word8
 dereferenceString bytes addr@(ByteAddress address) 
-    | isOutOfRange addr (length bytes)  = error "Address out of range"
+    | isOutOfRange addr (length bytes)  = error $ "dereferenceString: Address out of range\n" ++ "addr: " ++ (show addr) ++ "\nlength bytes: " ++ (show $ length bytes)
     | otherwise                         = bytes !! address
     
 addressOfHighByte :: WordAddress -> ByteAddress

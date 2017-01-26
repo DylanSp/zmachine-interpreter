@@ -25,14 +25,14 @@ new bytes = ImmutableBytes {originalBytes = bytes, edits = Map.empty}
 
 readByte :: ImmutableBytes -> ByteAddress -> Word8
 readByte bytes addr@(ByteAddress address)
-    | isOutOfRange addr (size bytes) = error "Address is out of range"
+    | isOutOfRange addr (size bytes) = error "ImmutableBytes.readByte: Address is out of range"
     | Map.member address edited      = fromJust $ Map.lookup address edited 
     | otherwise                      = (originalBytes bytes) !! address 
     where edited = edits bytes
     
 writeByte :: ImmutableBytes -> ByteAddress -> Word8 -> ImmutableBytes
 writeByte bytes addr@(ByteAddress address) value
-    | isOutOfRange addr (size bytes) = error "Address is out of range"
+    | isOutOfRange addr (size bytes) = error "ImmutableBytes.writeByte: Address is out of range"
     | otherwise                      = ImmutableBytes { originalBytes = originalBytes bytes,
                                                         edits = Map.insert address value (edits bytes)}
                                                         
