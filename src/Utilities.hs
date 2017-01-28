@@ -7,6 +7,7 @@ module Utilities where
 --put test code in Test/ directory.
 
 import Data.Bits
+import Data.List (foldl')
 import Data.Word
 
 newtype BitNumber = BitNumber Int
@@ -17,6 +18,7 @@ newtype ByteAddress = ByteAddress Int deriving (Show)
 
 newtype WordAddress = WordAddress Int
 
+--Eq, Ord, Num, Enum, Real are needed for Integral
 newtype ZWord = ZWord Word16 deriving (Eq, Ord, Num, Enum, Bits, Real, Integral, Show)
 
 --ZWord size in bytes
@@ -69,6 +71,9 @@ isOutOfRange address size = not $ isInRange address size
 incByteAddrBy :: ByteAddress -> Int -> ByteAddress
 incByteAddrBy (ByteAddress address) offset = ByteAddress (address + offset)
 
+incByteAddr :: ByteAddress -> ByteAddress
+incByteAddr address = incByteAddrBy address 1
+
 decByteAddrBy :: ByteAddress -> Int -> ByteAddress
 decByteAddrBy address offset = incByteAddrBy address (0 - offset)
 
@@ -89,3 +94,13 @@ addressOfHighByte (WordAddress address) = ByteAddress address
 addressOfLowByte :: WordAddress -> ByteAddress
 addressOfLowByte (WordAddress address) = ByteAddress (address + 1)
 
+--fold collection of numbered elements into a string
+--toString is a function converting an Int index to a string
+--folds [start, end)
+concatenateIndexedStrings :: (Int -> String) -> Int -> Int -> String
+concatenateIndexedStrings toString start end = foldl' (\acc i -> acc ++ toString i) "" [start..end - 1]
+
+--given a method toString that produces a string representation of an item,
+--concatenates all string representations of a list of items
+concatenateStringReps :: (a -> String) -> [a] -> String
+concatenateStringReps toString items = foldl' (\text item -> text ++ toString item) "" items

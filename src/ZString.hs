@@ -115,6 +115,7 @@ displayBytes story (ZStringAddress address) = aux "" (WordAddress (fromIntegral 
             | otherwise = aux newAcc (incWordAddr currentAddr)
             where word = S.readWord story currentAddr
                   isEnd = fetchBit bit15 word
+                  --isEnd = True
                   zChar1 = ZChar (fromIntegral $ fetchBits bit14 size5 word)
                   zChar2 = ZChar (fromIntegral $ fetchBits bit9 size5 word)
                   zChar3 = ZChar (fromIntegral $ fetchBits bit4 size5 word)

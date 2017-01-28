@@ -6,6 +6,7 @@ module Story
 , readWord
 , writeWord
 , debugStory
+, isV3OrLower
 ) where
 
 import Data.Bits
@@ -17,6 +18,16 @@ import qualified ImmutableBytes as IMB
 data Story = Story { dynamicMemory :: IMB.ImmutableBytes
                    , staticMemory :: [Word8]
                    }
+                   
+data Version = V1
+             | V2
+             | V3
+             | V4
+             | V5
+             | V6
+             | V7
+             | V8
+             deriving (Eq)
 
 readByte :: Story -> ByteAddress -> Word8
 readByte story address
@@ -83,3 +94,21 @@ debugStory story = do
     putStrLn $ "Dynamic length: " ++ show dynamicLen
     putStrLn $ "Static length: " ++ show staticLen
     putStrLn $ "Total length: " ++ show totalLen
+    
+getVersion :: Story -> Version
+getVersion story 
+    | versionByte == 1  = V1
+    | versionByte == 2  = V2
+    | versionByte == 3  = V3
+    | versionByte == 4  = V4
+    | versionByte == 5  = V5
+    | versionByte == 6  = V6
+    | versionByte == 7  = V7
+    | versionByte == 8  = V8
+    | otherwise         = error "Unknown version"
+    where versionByte = readByte story (ByteAddress 0)
+    
+--refactor to Story -> Int that returns bytes-per-object-number, based on version?
+isV3OrLower :: Story -> Bool
+isV3OrLower story = version == V1 || version == V2 || version == V3
+    where version = getVersion story
