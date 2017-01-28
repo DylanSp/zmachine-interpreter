@@ -1,6 +1,10 @@
 Organize project
 -Create test directory, put tests there
 -put extension for {-# LANGUAGE GeneralizedNewtypeDeriving #-} in Cabal file
--add comments
+-add comments, especially from Spec
+-put everything in its own namespace
+-rename project
+-clean up Main
 
-https://ericlippert.com/2016/02/17/attic/
+
+https://ericlippert.com/2016/03/09/canyon-view/
