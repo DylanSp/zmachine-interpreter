@@ -6,6 +6,8 @@ Organize project
 -rename project
 -clean up Main
 -run hlint, follow suggestions
+-refactor concatenate methods in Utilities to use unlines.map?
+-add compiler warnings to Cabal file, clean them up
 
 
 https://ericlippert.com/2016/03/09/canyon-view/
