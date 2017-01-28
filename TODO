@@ -5,6 +5,7 @@ Organize project
 -put everything in its own namespace
 -rename project
 -clean up Main
+-run hlint, follow suggestions
 
 
 https://ericlippert.com/2016/03/09/canyon-view/
