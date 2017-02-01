@@ -8,6 +8,8 @@ Organize project
 -run hlint, follow suggestions
 -refactor concatenate methods in Utilities to use unlines.map?
 -add compiler warnings to Cabal file, clean them up
+-refactor Int types to use Num a instead of Int so I don't have to use fromIntegral everywhere? alternatively, some sort of typeclass for the various addresses?
+-add a function for getting all ZStringAddresses corresponding to a single string? that way, I can refactor readZString and zStringLength as folds
 
 
 https://ericlippert.com/2016/03/09/canyon-view/
