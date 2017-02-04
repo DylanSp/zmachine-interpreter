@@ -7,6 +7,7 @@ import Utilities
 import ZString as ZS 
 import Dictionary as D
 import Object as O
+import Instruction as I
 
 --TODO: make each of these a separate method, have one main that calls all of them
 
@@ -68,8 +69,16 @@ main = do
 -}
 
 --test: should output story's object tree
-
+{-
 main = do
     story <- S.loadStory "minizork.z3"
     let tree = O.displayObjectTree story
     putStrLn $ tree
+-}
+
+--test: should output instruction at 0x37d9
+--"37d9: call 1d9b 3e88 ffff ->sp"
+main = do
+    story <- S.loadStory "minizork.z3"
+    let instruction = I.decode story (InstructionAddress 0x37d9)
+    putStrLn $ display story instruction

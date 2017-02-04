@@ -6,7 +6,12 @@ module Story
 , readWord
 , writeWord
 , debugStory
+, Version(..)
+, getVersion
 , isV3OrLower
+, isV4OrLower
+, isV4OrHigher
+, isV5OrHigher
 ) where
 
 import Data.Bits
@@ -112,3 +117,13 @@ getVersion story
 isV3OrLower :: Story -> Bool
 isV3OrLower story = version == V1 || version == V2 || version == V3
     where version = getVersion story
+    
+isV4OrLower :: Story -> Bool
+isV4OrLower story = version == V1 || version == V2 || version == V3 || version == V4
+    where version = getVersion story
+
+isV4OrHigher :: Story -> Bool
+isV4OrHigher = not . isV3OrLower
+
+isV5OrHigher :: Story -> Bool
+isV5OrHigher = not . isV4OrLower

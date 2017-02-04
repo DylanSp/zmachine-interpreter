@@ -6,6 +6,7 @@ module ZString
 , readZString
 , displayBytes
 , abbreviationZString
+, zStringLength
 ) where
 
 import qualified Data.Char as Char
@@ -41,7 +42,7 @@ newtype AbbrevTableBase = AbbrevTableBase ZWord
 
 newtype WordZStringAddress = WordZStringAddress ZWord
 
-newtype ZStringAddress = ZStringAddress ZWord
+newtype ZStringAddress = ZStringAddress ZWord deriving (Eq, Ord, Num, Enum, Real, Integral)
 
 newtype ZChar = ZChar Int deriving (Eq, Ord, Num, Enum, Real, Integral, Show)
 
@@ -105,6 +106,16 @@ readZString story (ZStringAddress address) = aux "" alphabet0 (WordAddress (from
                   (text2, state3) = processZChar zChar2 state2
                   (text3, nextState) = processZChar zChar3 state3
                   newAcc = acc ++ text1 ++ text2 ++ text3
+                  
+--Lippert: gives the length in bytes of the encoded zstring, not the decoded string
+--TODO - like readZString, this could be refactored into a fold if we could get a [ZStringAddress]
+zStringLength :: S.Story -> ZStringAddress -> Int
+zStringLength story (ZStringAddress address) = aux 0 (WordAddress (fromIntegral address))
+    where aux :: Int -> WordAddress -> Int
+          aux len currentAddr
+            | isEnd     = len + 2 --string ends
+            | otherwise = aux (len + 2) (incWordAddr currentAddr)
+            where isEnd = fetchBit bit15 (S.readWord story currentAddr) 
                   
 --for debugging
 displayBytes :: S.Story -> ZStringAddress -> String
